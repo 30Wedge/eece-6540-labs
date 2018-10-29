@@ -1,7 +1,7 @@
 
 /**
  * Perform the matrix operation: D = A x B + C
-*
+ *
  * based on the kernel from MatrixMulti
  */
 __kernel void multiplyAdd(
@@ -11,7 +11,7 @@ __kernel void multiplyAdd(
     int widthB,
     int heightB,
     int widthC,
-    int heightC
+    int heightC,
     __global float *inputA,
     __global float *inputB,
     __global float *inputC)
@@ -19,8 +19,9 @@ __kernel void multiplyAdd(
     /* not sure if we're allowed an assert, but these conditions
     must be satistfied. If true, C size parameters can be omitted */
 
-    assert(widthC == widthB);
-    assert(heightC == heightA);
+    /* have to make this check on the host */
+    //assert(widthC == widthB);
+    //assert(heightC == heightA);
 
     /* get global position in Y direction */
     int row = get_global_id (1);

@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <assert.h>
 
 #ifdef __APPLE__
 #include <OpenCL/opencl.h>
@@ -65,6 +66,10 @@ int main()
     assert(wA *hA == (sizeof(A)/sizeof(float)) );
     assert(wB *hB == (sizeof(B)/sizeof(float)) );
     assert(wC *hC == (sizeof(C)/sizeof(float)) );
+
+    //double check that kernel matrix ops are bounded
+    assert(wC == wB);
+    assert(hC == hA);
 
 #ifdef __APPLE__
     /* Get Platform and Device Info */
