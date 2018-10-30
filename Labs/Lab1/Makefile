@@ -42,19 +42,18 @@ endif
 # on Linux for Altera OCL
 ifeq ($(UNAME_S),Linux)
 ALTERA_AOC=aoc
-EXECUTABLE=main
 KERNEL=mykernel
 BITCODES=$(KERNEL).aocx
-BITCODES-EMU=$(KERNEL).aocx-emu
 BUILD_DIR=bin
+EXECUTABLE=$(BUILD_DIR)/main
 INCDIR=-I./Utils 
 ALTERA_AOCL_INC_FLAGS=-DAOCL -O2 -fPIC -Iaocl_common/inc -I/opt/intelFPGA/16.1/hld/host/include -I../Utils
 ALTERA_AOCL_COMMON=aocl_common/src/AOCLUtils/opencl.cpp aocl_common/src/AOCLUtils/options.cpp
-#ALTERA_AOCL_LD_FLAGS=-L/opt/intelFPGA/16.1/hld/board/s5_ref/linux64/lib -L/opt/intelFPGA/16.1/hld/host/linux64/lib -Wl,--no-as-needed  -lalteracl -laltera_s5_ref_mmd -lelf -lrt -lpthread
+#ALTERA_AOCL_LD_FLAGS=-L/opt/intelFPGA/16.1/hld/board/s5_ref/linux64/lib -L/opt/intelFPGA/16.1/hld/host/linux64/lib -Wl,--no-as-needed  -laltera_s5_ref_mmd -lelf -lrt -lpthread
 ALTERA_AOCL_LD_FLAGS := $(shell aocl link-config) -lacl_emulator_kernel_rt
 ALTERAOCLSDKROOT__ = ${ALTERAOCLSDKROOT}
 SOURCES=main.c 
-AOCLCOMMOBJ=bin/opencl.o bin/options.o
+AOCLCOMMOBJ=$(BUILD_DIR)/opencl.o $(BUILD_DIR)/options.o
 
 emu: $(BITCODES).emu $(EXECUTABLE)
 
@@ -62,19 +61,19 @@ fpga: $(BITCODES) $(EXECUTABLE)
 
 $(BITCODES).emu: $(KERNEL).cl
 	unset AOCL_BOARD_PACKAGE_ROOT
-	$(ALTERA_AOC) -march=emulator $< -o bin/$(BITCODES)
+	$(ALTERA_AOC) -march=emulator $< -o $(BUILD_DIR)/$(BITCODES)
 
 $(BITCODES): $(KERNEL).cl
 	#export AOCL_BOARD_PACKAGE_ROOT=$(ALTERAOCLSDKROOT__)/board/c5soc
 	#$(ALTERA_AOC) $< -o bin/$(BITCODES) --report --board c5soc_sharedonly
 	export AOCL_BOARD_PACKAGE_ROOT=$(ALTERAOCLSDKROOT__)/board/terasic
-	$(ALTERA_AOC) $< -o bin/$(BITCODES) --report --board de5net_a7 -v
+	$(ALTERA_AOC) $< -o $(BUILD_DIR)/$(BITCODES) --report --board de5net_a7 -v
 
-$(EXECUTABLE): bin/main.o  $(AOCLCOMMOBJ)
+$(EXECUTABLE): $(BUILD_DIR)/main.o  $(AOCLCOMMOBJ)
 	mkdir -p $(BUILD_DIR)
-	g++ $(ALTERA_AOCL_INC_FLAGS) bin/main.o $(UTILOBJ) $(AOCLCOMMOBJ) $(ALTERA_AOCL_LD_FLAGS) -o $@
+	g++ $(ALTERA_AOCL_INC_FLAGS) $(BUILD_DIR)/main.o $(UTILOBJ) $(AOCLCOMMOBJ) $(ALTERA_AOCL_LD_FLAGS) -o $(EXECUTABLE)
 	echo "To run the emulated device: "
-	echo "    cd bin; CL_CONTEXT_EMULATOR_DEVICE_ALTERA=1 ./main"
+	echo "    cd $(BUILD_DIR); CL_CONTEXT_EMULATOR_DEVICE_ALTERA=1 ./main"
 
 $(BUILD_DIR)/main.o: main.c
 	mkdir -p $(BUILD_DIR)

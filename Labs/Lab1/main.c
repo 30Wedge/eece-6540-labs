@@ -60,7 +60,7 @@ int main()
     int wC = wB;
     int hC = hA;
     int wD = wC;
-    int hD = hD;
+    int hD = hC;
 
     /* check that array sizes are convincing */
     assert(wA *hA == (sizeof(A)/sizeof(float)) );
@@ -141,12 +141,12 @@ int main()
    std::string binary_file = getBoardBinaryFile("mykernel", device_id);
    printf("Using AOCX: %s\n", binary_file.c_str());
    program = createProgramFromBinary(context, binary_file.c_str(), &device_id, 1);
+   printf("Program successfully created\n");
 #else
 #error "unknown OpenCL SDK environment"
 #endif
 
 #endif
-
     /* Build Kernel Program */
     ret = clBuildProgram(program, 1, &device_id, NULL, NULL, NULL);
     if (ret != CL_SUCCESS) {
@@ -155,13 +155,14 @@ int main()
     }
 
     /* Create OpenCL Kernel */
-    kernel = clCreateKernel(program, "simpleMultiply", &ret);
+    kernel = clCreateKernel(program, "multiplyAdd", &ret);
     if (ret != CL_SUCCESS) {
       printf("Failed to create kernel.\n");
       exit(1);
     }
 
     float *D = (float *)calloc (hD * wD ,  sizeof(float));
+    printf("D before operation: \n\t");
     for (int i = 0; i < wD*hD; i++) {
       printf ("%f ", D[i]);
     }
@@ -191,7 +192,7 @@ int main()
             wC*hC*sizeof(float), (void *)C, 0, NULL, NULL);
 
     /* allocate space for Matrix D on the device */
-    cl_mem bufferD = clCreateBuffer(context, CL_MEM_WRITE_ONLY,
+    cl_mem bufferD = clCreateBuffer(context, CL_MEM_READ_WRITE,
             wD*hD*sizeof(float), NULL, &ret);
 
     /* Set the kernel arguments 
@@ -235,6 +236,7 @@ int main()
          (void *)D, 0, NULL, NULL);
 
     /* Verify result */
+    printf("D after operation: \n\t");
     for (int i = 0; i < wD*hD; i++) {
       printf ("%f ", D[i]);
     }
@@ -251,7 +253,6 @@ int main()
     clReleaseKernel(kernel);
     clReleaseProgram(program);
     clReleaseContext(context);
-
     return 0;
 }
 
