@@ -8,68 +8,46 @@
  *
  */
 
-__kernel void string_search(char16 pattern, __global char* text,
-     int chars_per_item, __local int* local_result, 
-     __global int* global_result) {
+__kernel void pi_calculate(
+    unsigned num_terms, 
+    __local float* temp_result,
+    __global int* global_result) {
 
 
-   /*
-     - input a 2 height,
+  /*
+    Guarantee that temp_result is the same length as the work_group size
+      (in final version) Guarantee that global_result is the same length as the number of work groups*
+      (now) global_resultss len = 2* temp_results len
 
-   char16 text_vector, check_vector;
-
+    TODO - reduce elements in global_results before returning
+  */
+ 
    /* initialize local data */
-   local_result[0] = 0;
-   local_result[1] = 0;
-   local_result[2] = 0;
-   local_result[3] = 0;
+  temp_result[get_local_id(0)] = 0;
 
    /* Make sure previous processing has completed */
    barrier(CLK_LOCAL_MEM_FENCE);
 
-   int item_offset = get_global_id(0) * chars_per_item;
+   // each group in the y dimension does work on [work_group_size] terms
+   int iter_target = num_terms / get_num_groups(1);
+   int iter_increment = get_local_size(0);
+   int iter_stat = get_local_id(0);
 
-   /* Iterate through characters in text */
-   for(int i=item_offset; i<item_offset + chars_per_item; i++) {
+   int y_val = get_group_id(1); //only calculate this once
 
-      /* load global text into private buffer */
-      /* vloadn(offset, p) Read vectors from a pointer to memory. 
-         Return sizeof (gentypen) bytes of data read from location 
-         (p + (offset * n)). n is the size of the generic type */
-      text_vector = vload16(0, text + i);
+   for(int i = get_local_id(0); i<iter_target; i+= iter_increment) {
 
-      /* compare text vector and pattern */
-      check_vector = text_vector == pattern;
+      float d = ((i * 4 + 1) + 2 * y_val) * (y * (-2) + 1);
 
-      /* Each element in a vector can be accessed by .sX 
-       with X being 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, A, B, C, D, E, F */
-      /* all() identifies whether every most significant bit (MSB) 
-       in every component of a vector is set to 1. */
-      /* Check for 'that' */
-      if(all(check_vector.s0123))
-         atomic_inc(local_result);
-
-      /* Check for 'with' */
-      if(all(check_vector.s4567))
-         atomic_inc(local_result + 1);
-
-      /* Check for 'have' */
-      if(all(check_vector.s89AB))
-         atomic_inc(local_result + 2);
-
-      /* Check for 'from' */
-      if(all(check_vector.sCDEF))
-         atomic_inc(local_result + 3);
+      //no barrier needed, since each work item can only access one local element
+      temp_result[get_local_id(0)] += d;
    }
 
    /* Make sure local processing has completed */
-   barrier(CLK_GLOBAL_MEM_FENCE);
+   barrier(CLK_LOCAL_MEM_FENCE);
 
-   /* Perform global reduction */
-   if(get_local_id(0) == 0) {
-      atomic_add(global_result, local_result[0]);
-      atomic_add(global_result + 1, local_result[1]);
-      atomic_add(global_result + 2, local_result[2]);
-      atomic_add(global_result + 3, local_result[3]);
-   }
+   /* TODO -- Perform global reduction */
+   
+   /**Instead, copy local_results to global */
+   global_result[get_local_id(0) + y_val * get_local_size(0)] = local_results[get_local_id(0)];
 }
