@@ -27,6 +27,7 @@ void cleanup();
 #endif
 
 
+#define DEBUG_SPAM 
 //easier debugging by spamming console
 #ifdef DEBUG_SPAM
   #define SPAM(a) printf a
@@ -167,7 +168,17 @@ int main()
 
     ret = 0;
     //create bufer for global results
-    global_results = malloc(sizeof(float) * global_size);
+    global_results = (float*) malloc(sizeof(float) * global_size);
+    if(global_results == 0)
+    {
+        printf("Global results got deadass uninit'd\n");
+        exit(1);
+    } else {
+        for(int i = 0; i < global_size; i ++)
+        {
+          SPAM(("%f, \n", global_results[i]));
+        }
+    } 
     cl_mem global_buffer = clCreateBuffer(context, CL_MEM_WRITE_ONLY,
            global_size*sizeof(float), NULL, &ret);
     if(ret < 0) {
@@ -175,7 +186,8 @@ int main()
        exit(1);
     };
     /* Create kernel argument */
-    ret = clSetKernelArg(kernel, 0, sizeof(unsigned), N_TERMS);
+    unsigned n_terms = N_TERMS;
+    ret = clSetKernelArg(kernel, 0, sizeof(unsigned), &n_terms);
     //local buffer
     ret |= clSetKernelArg(kernel, 1, local_size * sizeof(float), NULL);
     ret |= clSetKernelArg(kernel, 2, sizeof(cl_mem), &global_buffer);
@@ -195,7 +207,7 @@ int main()
 
     /* Read and print the result */
     ret = clEnqueueReadBuffer(command_queue, global_buffer, CL_TRUE, 0,
-       sizeof(global_results), &global_results, 0, NULL, NULL);
+       global_size * sizeof(float), (void *)global_results, 0, NULL, NULL);
     if(ret < 0) {
        perror("Couldn't read the buffer");
        exit(1);
@@ -203,17 +215,18 @@ int main()
 
     printf("\nResults: \n");
     float run_sum = 0;
+    printf("%f\n", global_results[0]);
     for(int i = 0; i < global_size; i ++)
     {
       SPAM(("%f, ", global_results[i]));
       run_sum += global_results[i];
     }
     SPAM(("\n"));
-    printf("run_sum: %f", run_sum);
+    printf("\tpi/4 = %f, pi = %f \n", run_sum, run_sum * 4);
 
 
     /* free resources */
-    free(global_results);
+    //free(global_results);
 
     clReleaseMemObject(global_buffer);
     clReleaseCommandQueue(command_queue);

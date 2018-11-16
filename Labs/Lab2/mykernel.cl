@@ -11,7 +11,7 @@
 __kernel void pi_calculate(
     unsigned num_terms, 
     __local float* temp_result,
-    __global int* global_result) {
+    __global float* global_result) {
 
 
   /*
@@ -33,14 +33,14 @@ __kernel void pi_calculate(
    int iter_increment = get_local_size(0);
    int iter_stat = get_local_id(0);
 
-   int y_val = get_group_id(1); //only calculate this once
+   int y_val = get_group_id(0); //only calculate this once
 
    for(int i = get_local_id(0); i<iter_target; i+= iter_increment) {
 
-      float d = ((i * 4 + 1) + 2 * y_val) * (y * (-2) + 1);
+      float d = ((i * 4 + 1) + 2 * y_val) * (y_val * (-2) + 1);
 
       //no barrier needed, since each work item can only access one local element
-      temp_result[get_local_id(0)] += d;
+      temp_result[get_local_id(0)] += 1/d;
    }
 
    /* Make sure local processing has completed */
@@ -49,5 +49,5 @@ __kernel void pi_calculate(
    /* TODO -- Perform global reduction */
    
    /**Instead, copy local_results to global */
-   global_result[get_local_id(0) + y_val * get_local_size(0)] = local_results[get_local_id(0)];
+   global_result[get_local_id(0) + y_val * get_local_size(0)] = temp_result[get_local_id(0)];
 }
