@@ -26,9 +26,8 @@ using namespace aocl_utils;
 void cleanup();
 #endif
 
-
-#define DEBUG_SPAM 
-//easier debugging by spamming console
+//easier debugging by spamming console intermediate results
+//#define DEBUG_SPAM 
 #ifdef DEBUG_SPAM
   #define SPAM(a) printf a
 #else
@@ -38,6 +37,7 @@ void cleanup();
 //global settings
 #define N_TERMS 1000
 #define WG_SIZE 16
+#define N_WG    2 //there will only ever be 2 work groups, this won't change
 
 int main()
 {
@@ -112,7 +112,7 @@ int main()
 #endif //AOCL
 
     //Global size will only be 2, one WG for negative terms, one for positive
-    global_size = 2 * local_size;
+    global_size = N_WG * local_size;
     printf("global_size=%lu, local_size=%lu\n", global_size, local_size);
 
     /* Create OpenCL context */
@@ -168,17 +168,13 @@ int main()
 
     ret = 0;
     //create bufer for global results
-    global_results = (float*) malloc(sizeof(float) * global_size);
+    global_results = (float*) malloc(sizeof(float) * N_WG);
     if(global_results == 0)
     {
-        printf("Global results got deadass uninit'd\n");
+        printf("Global results could not be allocated\n");
         exit(1);
-    } else {
-        for(int i = 0; i < global_size; i ++)
-        {
-          SPAM(("%f, \n", global_results[i]));
-        }
-    } 
+    }
+
     cl_mem global_buffer = clCreateBuffer(context, CL_MEM_WRITE_ONLY,
            global_size*sizeof(float), NULL, &ret);
     if(ret < 0) {
@@ -197,6 +193,7 @@ int main()
     };
 
     /* Enqueue kernel */
+    SPAM(("Running the kernel\n"));
     ret = clEnqueueNDRangeKernel(command_queue, kernel, 1, NULL, &global_size,
           &local_size, 0, NULL, NULL);
     if(ret < 0) {
@@ -206,8 +203,9 @@ int main()
     }
 
     /* Read and print the result */
+    SPAM(("Submitting reuqest to read global results\n"));
     ret = clEnqueueReadBuffer(command_queue, global_buffer, CL_TRUE, 0,
-       global_size * sizeof(float), (void *)global_results, 0, NULL, NULL);
+       N_WG * sizeof(float), (void *)global_results, 0, NULL, NULL);
     if(ret < 0) {
        perror("Couldn't read the buffer");
        exit(1);
@@ -215,8 +213,7 @@ int main()
 
     printf("\nResults: \n");
     float run_sum = 0;
-    printf("%f\n", global_results[0]);
-    for(int i = 0; i < global_size; i ++)
+    for(int i = 0; i < N_WG; i ++)
     {
       SPAM(("%f, ", global_results[i]));
       run_sum += global_results[i];
@@ -226,13 +223,15 @@ int main()
 
 
     /* free resources */
-    //free(global_results);
+    SPAM(("Freeing resources\n"));
+    free(global_results);
 
     clReleaseMemObject(global_buffer);
     clReleaseCommandQueue(command_queue);
     clReleaseKernel(kernel);
     clReleaseProgram(program);
     clReleaseContext(context);
+    SPAM(("Released all resources\n"));
 
     return 0;
 }

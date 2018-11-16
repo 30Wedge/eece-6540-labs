@@ -74,7 +74,7 @@ $(EXECUTABLE): bin/main.o  $(AOCLCOMMOBJ)
 	mkdir -p $(BUILD_DIR)
 	g++ $(ALTERA_AOCL_INC_FLAGS) bin/main.o $(UTILOBJ) $(AOCLCOMMOBJ) $(ALTERA_AOCL_LD_FLAGS) -o $@
 	echo "To run the emulated device: "
-	echo "    cd bin; CL_CONTEXT_EMULATOR_DEVICE_ALTERA=1 ./main"
+	echo "    cd bin; CL_CONTEXT_EMULATOR_DEVICE_ALTERA=1; ../main"
 
 $(BUILD_DIR)/main.o: main.c
 	mkdir -p $(BUILD_DIR)
