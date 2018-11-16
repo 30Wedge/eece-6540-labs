@@ -26,10 +26,17 @@ using namespace aocl_utils;
 void cleanup();
 #endif
 
-#define MAX_SOURCE_SIZE (0x100000)
-#define DEVICE_NAME_LEN 128
-static char dev_name[DEVICE_NAME_LEN];
 
+//easier debugging by spamming console
+#ifdef DEBUG_SPAM
+  #define SPAM(a) printf a
+#else
+  #define SPAM(a) (void) 0
+#endif
+
+//global settings
+#define N_TERMS 1000
+#define WG_SIZE 16
 
 int main()
 {
@@ -53,12 +60,8 @@ int main()
     char *source_str;
     size_t source_size;
 
-    int result[4] = {0, 0, 0, 0};
-    char pattern[16] = {'t','h','a','t','w','i','t','h','h','a','v','e','f','r','o','m'};
-    FILE *text_handle;
-    char *text;
-    size_t text_size;
-    int chars_per_item;
+    float* global_results;
+
 
 #ifdef __APPLE__
     /* Get Platform and Device Info */
@@ -70,7 +73,7 @@ int main()
     ret = clGetDeviceIDs(platforms[0], CL_DEVICE_TYPE_DEFAULT, 1, &device_id, &ret_num_devices);
     ret = clGetDeviceInfo(device_id, CL_DEVICE_NAME, DEVICE_NAME_LEN, dev_name, NULL);
     printf("device name= %s\n", dev_name);
-#else
+#else 
 
 #ifdef AOCL  /* Altera FPGA */
     // get all platforms
@@ -88,25 +91,27 @@ int main()
     printf("Using one out of %d device(s)\n", ret_num_devices);
     ret = clGetDeviceIDs(platforms[0], CL_DEVICE_TYPE_DEFAULT, 1, &device_id, &ret_num_devices);
     printf("device name=  %s\n", getDeviceName(device_id).c_str());
-#else
+#else 
 #error "unknown OpenCL SDK environment"
-#endif
+#endif // AOCL
 
-#endif
+#endif //__APPLE__
 
     /* Determine global size and local size */
     clGetDeviceInfo(device_id, CL_DEVICE_MAX_COMPUTE_UNITS,
       sizeof(num_comp_units), &num_comp_units, NULL);
     printf("num_comp_units=%u\n", num_comp_units);
+
 #ifdef __APPLE__
      (device_id, CL_DEVICE_MAX_WORK_GROUP_SIZE,
               sizeof(local_size), &local_size, NULL);
-#endif
+#endif//__APPLE__
 #ifdef AOCL  /* local size reported Altera FPGA is incorrect */
-    local_size = 16;
-#endif
-    printf("local_size=%lu\n", local_size);
-    global_size = num_comp_units * local_size;
+    local_size = WG_SIZE;
+#endif //AOCL
+
+    //Global size will only be 2, one WG for negative terms, one for positive
+    global_size = 2 * local_size;
     printf("global_size=%lu, local_size=%lu\n", global_size, local_size);
 
     /* Create OpenCL context */
@@ -133,7 +138,7 @@ int main()
       printf("Failed to create program from source.\n");
       exit(1);
     }
-#else
+#else //__APPLE__
 
 #ifdef AOCL  /* on FPGA we need to create kernel from binary */
    /* Create Kernel Program from the binary */
@@ -154,43 +159,26 @@ int main()
     }
 
     /* Create OpenCL Kernel */
-    kernel = clCreateKernel(program, "string_search", &ret);
+    kernel = clCreateKernel(program, "pi_calculate", &ret);
     if (ret != CL_SUCCESS) {
       printf("Failed to create kernel.\n");
       exit(1);
     }
 
-    /* Read text file and place content into buffer */
-    text_handle = fopen(TEXT_FILE, "r");
-    if(text_handle == NULL) {
-       perror("Couldn't find the text file");
-       exit(1);
-    }
-    fseek(text_handle, 0, SEEK_END);
-    text_size = ftell(text_handle)-1;
-    rewind(text_handle);
-    text = (char*)calloc(text_size, sizeof(char));
-    fread(text, sizeof(char), text_size, text_handle);
-    fclose(text_handle);
-    chars_per_item = text_size / global_size + 1;
-
-    /* Create buffers to hold the text characters and count */
-    cl_mem text_buffer = clCreateBuffer(context, CL_MEM_READ_ONLY |
-          CL_MEM_COPY_HOST_PTR, text_size, text, &ret);
+    ret = 0;
+    //create bufer for global results
+    global_results = malloc(sizeof(float) * global_size);
+    cl_mem global_buffer = clCreateBuffer(context, CL_MEM_WRITE_ONLY,
+           global_size*sizeof(float), NULL, &ret);
     if(ret < 0) {
-       perror("Couldn't create a buffer");
+       printf("Couldn't allocate global writeonly buffer");
        exit(1);
     };
-    cl_mem result_buffer = clCreateBuffer(context, CL_MEM_READ_WRITE |
-          CL_MEM_COPY_HOST_PTR, sizeof(result), result, NULL);
-
-    ret = 0;
     /* Create kernel argument */
-    ret = clSetKernelArg(kernel, 0, sizeof(pattern), pattern);
-    ret |= clSetKernelArg(kernel, 1, sizeof(cl_mem), &text_buffer);
-    ret |= clSetKernelArg(kernel, 2, sizeof(chars_per_item), &chars_per_item);
-    ret |= clSetKernelArg(kernel, 3, 4 * sizeof(int), NULL);
-    ret |= clSetKernelArg(kernel, 4, sizeof(cl_mem), &result_buffer);
+    ret = clSetKernelArg(kernel, 0, sizeof(unsigned), N_TERMS);
+    //local buffer
+    ret |= clSetKernelArg(kernel, 1, local_size * sizeof(float), NULL);
+    ret |= clSetKernelArg(kernel, 2, sizeof(cl_mem), &global_buffer);
     if(ret < 0) {
        printf("Couldn't set a kernel argument");
        exit(1);
@@ -206,25 +194,28 @@ int main()
     }
 
     /* Read and print the result */
-    ret = clEnqueueReadBuffer(command_queue, result_buffer, CL_TRUE, 0,
-       sizeof(result), &result, 0, NULL, NULL);
+    ret = clEnqueueReadBuffer(command_queue, global_buffer, CL_TRUE, 0,
+       sizeof(global_results), &global_results, 0, NULL, NULL);
     if(ret < 0) {
        perror("Couldn't read the buffer");
        exit(1);
     }
 
     printf("\nResults: \n");
-    printf("Number of occurrences of 'that': %d\n", result[0]);
-    printf("Number of occurrences of 'with': %d\n", result[1]);
-    printf("Number of occurrences of 'have': %d\n", result[2]);
-    printf("Number of occurrences of 'from': %d\n", result[3]);
+    float run_sum = 0;
+    for(int i = 0; i < global_size; i ++)
+    {
+      SPAM(("%f, ", global_results[i]));
+      run_sum += global_results[i];
+    }
+    SPAM(("\n"));
+    printf("run_sum: %f", run_sum);
 
 
     /* free resources */
-    free(text);
+    free(global_results);
 
-    clReleaseMemObject(text_buffer);
-    clReleaseMemObject(result_buffer);
+    clReleaseMemObject(global_buffer);
     clReleaseCommandQueue(command_queue);
     clReleaseKernel(kernel);
     clReleaseProgram(program);
