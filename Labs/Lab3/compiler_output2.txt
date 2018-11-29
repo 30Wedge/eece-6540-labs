@@ -1,0 +1,14 @@
+aoc device/boardtest.cl -o boardtest.aocx --board de5net_a7 --report 
+aoc: Selected target board de5net_a7
+
++--------------------------------------------------------------------+
+; Estimated Resource Usage Summary                                   ;
++----------------------------------------+---------------------------+
+; Resource                               + Usage                     ;
++----------------------------------------+---------------------------+
+; Logic utilization                      ;   25%                     ;
+; ALUTs                                  ;   16%                     ;
+; Dedicated logic registers              ;   11%                     ;
+; Memory blocks                          ;   20%                     ;
+; DSP blocks                             ;    0%                     ;
++----------------------------------------+---------------------------;

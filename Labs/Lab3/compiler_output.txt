@@ -1,0 +1,61 @@
+aoc device/boardtest.cl -o boardtest.aocx --board de5net_a7 --report 
+aoc: Selected target board de5net_a7
+
++--------------------------------------------------------------------+
+; Estimated Resource Usage Summary                                   ;
++----------------------------------------+---------------------------+
+; Resource                               + Usage                     ;
++----------------------------------------+---------------------------+
+; Logic utilization                      ;   25%                     ;
+; ALUTs                                  ;   16%                     ;
+; Dedicated logic registers              ;   11%                     ;
+; Memory blocks                          ;   20%                     ;
+; DSP blocks                             ;    0%                     ;
++----------------------------------------+---------------------------;
+2018.11.29.11:25:56 Error: s0: Error during execution of "/opt/intelFPGA/16.1/quartus/../nios2eds/nios2_command_shell.sh make all 2>> stderr.txt":  error: Connection refused
+2018.11.29.11:25:56 Error: s0: Execution of command "/opt/intelFPGA/16.1/quartus/../nios2eds/nios2_command_shell.sh make all 2>> stderr.txt" failed
+2018.11.29.11:25:56 Error: s0: make[1]: Entering directory '/tmp/alt7864_1682615038104107446.dir/0018_s0_gen/qsys_pre_compile/system_acl_iface_ddr3a_s0_software'
+2018.11.29.11:25:56 Error: s0: /opt/intelFPGA/16.1/quartus/bin/uniphy_mcc -ac_code sequencer_mc/ac_rom.s -inst_code sequencer_mc/inst_rom.s -ac_rom ../system_acl_iface_ddr3a_s0_AC_ROM.hex -inst_rom ../system_acl_iface_ddr3a_s0_inst_ROM.hex -header sequencer/sequencer_auto.h -vheader ../sequencer_auto_h.sv -ac_rom_init sequencer/sequencer_auto_ac_init.c -inst_rom_init sequencer/sequencer_auto_inst_init.c -DAC_ROM_USER_ADD_0=0_0000_0000_0000 -DAC_ROM_USER_ADD_1=0_0000_0000_1000 -DAC_ROM_MR0=0110001110001 -DAC_ROM_MR0_CALIB= -DAC_ROM_MR0_DLL_RESET=0110101110000 -DAC_ROM_MR1=0000001000100 -DAC_ROM_MR1_OCD_ENABLE= -DAC_ROM_MR2=0001000011000 -DAC_ROM_MR3=0000000000000 -DAC_ROM_MR0_MIRR=0110001101001 -DAC_ROM_MR0_DLL_RESET_MIRR=0110011101000 -DAC_ROM_MR1_MIRR=0000000100100 -DAC_ROM_MR2_MIRR=0001000011000 -DAC_ROM_MR3_MIRR=0000000000000 -DQUARTER_RATE=1 -DHALF_RATE=0 -DFULL_RATE=0 -DNON_DES_CAL=0 -DAP_MODE=0 -DGUARANTEED_READ_BRINGUP_TEST=0 -DMEM_ADDR_WIDTH=13 -DHARD_PHY=0
+2018.11.29.11:25:56 Error: s0: UniPHY Sequencer Microcode Compiler
+2018.11.29.11:25:56 Error: s0: Copyright (C) 2017  Intel Corporation. All rights reserved.
+2018.11.29.11:25:56 Error: s0: Info: Reading sequencer_mc/ac_rom.s ...
+2018.11.29.11:25:56 Error: s0: Info: Reading sequencer_mc/inst_rom.s ...
+2018.11.29.11:25:56 Error: s0: Info: Writing ../system_acl_iface_ddr3a_s0_AC_ROM.hex ...
+2018.11.29.11:25:56 Error: s0: Info: Writing ../system_acl_iface_ddr3a_s0_inst_ROM.hex ...
+2018.11.29.11:25:56 Error: s0: Info: Writing sequencer/sequencer_auto_ac_init.c ...
+2018.11.29.11:25:56 Error: s0: Info: Writing sequencer/sequencer_auto_inst_init.c ...
+2018.11.29.11:25:56 Error: s0: Info: Writing sequencer/sequencer_auto.h ...
+2018.11.29.11:25:56 Error: s0: Info: Writing sequencer/sequencer_auto.h ...
+2018.11.29.11:25:56 Error: s0: Info: Writing ../sequencer_auto_h.sv ...
+2018.11.29.11:25:56 Error: s0: Info: Microcode compilation successful
+2018.11.29.11:25:56 Error: s0: /opt/intelFPGA/16.1/quartus/../nios2eds/sdk2/bin/nios2-bsp hal sequencer_bsp .. --default_sections_mapping sequencer_mem --use_bootloader DONT_CHANGE
+2018.11.29.11:25:56 Error: s0: nios2-bsp: Using /opt/intelFPGA/16.1/nios2eds/sdk2/bin/bsp-set-defaults.tcl to set system-dependent settings.
+2018.11.29.11:25:56 Error: s0: nios2-bsp: Updating existing BSP because sequencer_bsp/settings.bsp exists.
+2018.11.29.11:25:56 Error: s0: nios2-bsp: Using SOPC design file ../pre_compile.sopcinfo found in ..
+2018.11.29.11:25:56 Error: s0: nios2-bsp: Running "nios2-bsp-update-settings --settings sequencer_bsp/settings.bsp --bsp-dir sequencer_bsp --sopc ../pre_compile.sopcinfo --script /opt/intelFPGA/16.1/nios2eds/sdk2/bin/bsp-set-defaults.tcl default_sections_mapping sequencer_mem use_bootloader DONT_CHANGE "
+2018.11.29.11:25:56 Error: s0: INFO: Updating BSP settings...
+2018.11.29.11:25:56 Error: s0: INFO: nios2-bsp-update-settings --settings sequencer_bsp/settings.bsp --bsp-dir sequencer_bsp --sopc ../pre_compile.sopcinfo --script /opt/intelFPGA/16.1/nios2eds/sdk2/bin/bsp-set-defaults.tcl default_sections_mapping sequencer_mem use_bootloader DONT_CHANGE
+2018.11.29.11:25:56 Error: s0: INFO: Initializing BSP components...
+2018.11.29.11:25:56 Error: s0: INFO: Finished initializing BSP components. Total time taken = 2 seconds
+2018.11.29.11:25:56 Error: s0: INFO: Searching for BSP components with category: os_software_element
+2018.11.29.11:25:56 Error: s0: INFO: Initializing SOPC project local software IP
+2018.11.29.11:25:56 Error: s0: INFO: [Info] /tmp/alt7864_1682615038104107446.dir/0018_s0_gen/qsys_pre_compile/* matched 5 files in 0.00 seconds
+2018.11.29.11:25:56 Error: s0: INFO: [Info] /tmp/alt7864_1682615038104107446.dir/0018_s0_gen/qsys_pre_compile/*/*_sw.tcl matched 0 files in 0.00 seconds
+2018.11.29.11:25:56 Error: s0: INFO: [Info] /tmp/alt7864_1682615038104107446.dir/0018_s0_gen/qsys_pre_compile/ip/**/*_sw.tcl matched 0 files in 0.00 seconds
+2018.11.29.11:25:56 Error: s0: INFO: [Info] /tmp/alt7864_1682615038104107446.dir/0018_s0_gen/ip/**/*_sw.tcl matched 0 files in 0.00 seconds
+2018.11.29.11:25:56 Error: s0: INFO: Finished initializing SOPC project local software IP. Total time taken = 2 seconds
+2018.11.29.11:25:56 Error: s0: INFO: Searching for BSP components with category: driver_element
+2018.11.29.11:25:56 Error: s0: INFO: Searching for BSP components with category: software_package_element
+2018.11.29.11:25:56 Error: s0: Makefile:18: recipe for target 'setup' failed
+2018.11.29.11:25:56 Error: s0: make[1]: Leaving directory '/tmp/alt7864_1682615038104107446.dir/0018_s0_gen/qsys_pre_compile/system_acl_iface_ddr3a_s0_software'
+2018.11.29.11:25:56 Error: s0: WARNING: The BSP persisted OS version "9.1" is not available. The default latest BSP version will be used instead.
+2018.11.29.11:25:56 Error: s0: WARNING: The BSP being loaded used OS version "9.1". The BSP version "16.1" will be used instead.
+2018.11.29.11:25:56 Error: s0: PuTTY X11 proxy: unable to connect to forwarded X server: Network error: Connection refused
+2018.11.29.11:25:56 Error: s0: SEVERE: Can't connect to X11 window server using 'acanets-PowerEdge-R730:13.0' as the value of the DISPLAY variable.
+2018.11.29.11:25:56 Error: s0: SEVERE: nios2-bsp-update-settings failed.
+2018.11.29.11:25:56 Error: s0: nios2-bsp: nios2-bsp-update-settings failed
+2018.11.29.11:25:56 Error: s0: make[1]: *** [setup] Error 1
+2018.11.29.11:25:56 Error: s0: Cannot find sequencer/sequencer.elf
+2018.11.29.11:25:56 Error: s0: An error occurred
+2018.11.29.11:25:56 Error: Generation stopped, 275 or more modules remaining
+Makefile:42: recipe for target 'fpga' failed
